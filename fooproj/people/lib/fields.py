@@ -12,6 +12,7 @@ class PlaceWidget(forms.MultiWidget):
             forms.TextInput(attrs=attrs),
             forms.TextInput(attrs=attrs),
             forms.TextInput(attrs=attrs),
+            #forms.TextInput(attrs=attrs),
             forms.Select(attrs=attrs, choices=(
                 ('MC', 'Macerata'), ('AN', 'Ancona'),
                 ('FM', 'Fermo'), ('AP', 'Ascoli Piceno')
@@ -64,6 +65,7 @@ class PlaceField(forms.MultiValueField):
             forms.CharField(label=_("name")),
             forms.CharField(label=_("zip")),
             forms.CharField(label=_("city")),
+            #forms.CharField(label=_("state")),
             forms.ChoiceField(label=_("state")),
         )
         super(PlaceField, self).__init__(fields, *args, **kw)
