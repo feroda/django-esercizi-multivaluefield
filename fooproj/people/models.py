@@ -29,14 +29,13 @@ class Contact(models.Model):
 
     def save(self, *args, **kw):
 
-        #LF: In questo punto è necessario implementare la nuova creazione su modifica
 
         #TODO: Copy-on-write model
         # a) check if an already existent place with the same full address exist and in that case force update
         # b) if we are updating a Contact --> remove pk and save, so clone it!
         # (a garbage collector will find unused places and remove them)
 
-        super(Place, self).save(*args, **kw)
+        super(Contact, self).save(*args, **kw)
 
 class Place(models.Model): #, PermissionResource):
     """Places should be managed as separate entities for various reasons:
@@ -65,6 +64,8 @@ class Place(models.Model): #, PermissionResource):
         verbose_name_plural = _("places")
         ordering = ('name', 'address', 'city')
 
+
+
     def __unicode__(self):
 
         rv = u"" 
@@ -84,6 +85,7 @@ class Place(models.Model): #, PermissionResource):
         return rv
 
     def clean(self):
+        print ("SELF = ", self)
 
         self.name = self.name.strip().lower().capitalize()
         self.address = self.address.strip().lower().capitalize()
@@ -105,13 +107,13 @@ class Place(models.Model): #, PermissionResource):
 
     def save(self, *args, **kw):
 
-        #LF: In questo punto è necessario implementare la nuova creazione su modifica
+        #LF: In questo punto e` necessario implementare la nuova creazione su modifica
 
         #TODO: Copy-on-write model
         # a) check if an already existent place with the same full address exist and in that case force update
         # b) if we are updating a Place --> remove pk and save, so clone it!
         # (a garbage collector will find unused places and remove them)
-
+        print("save place")
         super(Place, self).save(*args, **kw)
         
 
@@ -126,7 +128,9 @@ class Person(models.Model):
     display_name = models.CharField(max_length=128, blank=True,verbose_name=_('Display name'))
 
     place = models.ForeignKey(Place,verbose_name=_('place'))
-    contact_set = models.ManyToManyField('Contact', null=True, blank=True,verbose_name=_('contacts'))
+    contact_set = models.CharField(max_length=128,null=True,blank=True,verbose_name=_('contacts'))
+#    contact_set = models.ManyToManyField('Contact', null=True, blank=True,verbose_name=_('contacts'))
+#    contact_set = models.ForeignKey(Contact, verbose_name=_('contact'))
 
     class Meta:
         verbose_name = _("person")
@@ -141,10 +145,10 @@ class Person(models.Model):
         self.name = self.name.strip().lower().capitalize()
         self.surname = self.surname.strip().lower().capitalize()
         self.display_name = self.display_name.strip()
-        if not self.ssn:
-            self.ssn = None
-        else:
-            self.ssn = self.ssn.strip().upper()
+        #if not self.ssn:
+        #    self.ssn = None
+        #else:
+        #    self.ssn = self.ssn.strip().upper()
 
         return super(Person, self).clean()
     

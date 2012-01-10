@@ -1,8 +1,11 @@
+from django.utils.translation import ugettext as _
+
 from people.models import Contact
 from people.models import Place
 from people.models import Person
 from people.lib.fields import PlaceField
 from people.lib.fields import ContactField
+from people.lib.fields import MultiContactField
 
 
 from django.contrib import admin
@@ -34,14 +37,15 @@ class PersonForm(forms.ModelForm):
     * Esercizio 4: 
     Impostare l'email come obbligatoria.
     Proporre direttamente la select con Email, Fisso, Cell.
-    Più un campo (multiplo) contatti vuoto). 
+    Piu` un campo (multiplo) contatti vuoto). 
     """
 
     #contact = ContactField()
-    # LF: questo è qui per prova
+    # LF: questo e` qui per prova
     # c = forms.ModelChoiceField(queryset=Contact.objects.all())
     place = PlaceField()
-    # LF: questo è qui per prova
+    contact_set = MultiContactField(n=3,label=_('Contacts'))
+    # LF: questo e` qui per prova
     # t = forms.SplitDateTimeField(required=False)
     class Meta:
         model = Person

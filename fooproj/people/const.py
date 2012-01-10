@@ -32,5 +32,3 @@ DAY_CHOICES = [
     ('SATURDAY', _('Saturday')),
     ('SUNDAY', _('Sunday')),
 ]
-
-
