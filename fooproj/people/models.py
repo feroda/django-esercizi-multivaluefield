@@ -28,12 +28,20 @@ class Contact(models.Model):
         return super(Contact, self).clean()
 
     def save(self, *args, **kw):
-
-
         #TODO: Copy-on-write model
         # a) check if an already existent place with the same full address exist and in that case force update
         # b) if we are updating a Contact --> remove pk and save, so clone it!
         # (a garbage collector will find unused places and remove them)
+
+        equals_found = Contact.objects.filter(flavour=self.flavour,
+            value=self.value,is_preferred=self.is_preferred,
+            description=self.description)
+
+        if len(equals_found) > 0:
+            self.pk = equals_found[0].pk
+        elif self.pk != None:
+            # we are updating an object
+            self.pk = None # forget the pk, so it will be saved a as copy(clone)
 
         super(Contact, self).save(*args, **kw)
 
@@ -113,7 +121,17 @@ class Place(models.Model): #, PermissionResource):
         # a) check if an already existent place with the same full address exist and in that case force update
         # b) if we are updating a Place --> remove pk and save, so clone it!
         # (a garbage collector will find unused places and remove them)
-        print("save place")
+
+        equals_found = Place.objects.filter(name=self.name,
+            address=self.address,zipcode=self.zipcode,
+            city=self.city,province=self.province)
+
+        if len(equals_found) > 0:
+            self.pk = equals_found[0].pk
+        elif self.pk != None:
+            # we are updating an object
+            self.pk = None # forget the pk, so it will be saved a as copy(clone)
+
         super(Place, self).save(*args, **kw)
         
 

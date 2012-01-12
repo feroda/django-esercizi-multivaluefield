@@ -150,6 +150,7 @@ class MultiContactWidget(forms.MultiWidget):
         return MultiContactWidget.num_contacts
 
     def __init__(self, n, attrs=None):
+#        print("Ricevuto n=%d" % n)
         widgets = []
         MultiContactWidget.num_contacts = n
         for i in range(n):
@@ -159,16 +160,16 @@ class MultiContactWidget(forms.MultiWidget):
 
     def decompress(self, value):
         if value:
-            contactIdSet = value.split("::")[0:MultiContactWidget.num_contacts]
+            contact_id_set = value.split("::")[0:MultiContactWidget.num_contacts]
 
             contacts = []
-            for currId in contactIdSet:
-                if currId.isdigit():
-                    print("Search pk=",currId)
-                    contactFound = Contact.objects.filter(pk=currId)
-                    print("Found=",contactFound)
-                    if contactFound != None:
-                        contacts.append(contactFound)
+            for curr_id in contact_id_set:
+                if curr_id.isdigit():
+#                    print("Search pk=",curr_id)
+                    contact_found = Contact.objects.filter(pk=curr_id)
+                    print("Found=",contact_found)
+                    if contact_found != None:
+                        contacts.append(contact_found)
             
             print("All contacts=",contacts)
             return contacts
@@ -176,7 +177,7 @@ class MultiContactWidget(forms.MultiWidget):
             return ''
 
 class MultiContactField(forms.MultiValueField):
-    widget = MultiContactWidget(1)
+    widget = None
 
     def __init__(self, n, *args, **kw):
         fields = []
@@ -184,40 +185,42 @@ class MultiContactField(forms.MultiValueField):
         for i in range(n):
             fields.append(ContactField())
 
-        MultiContactField.widget = MultiContactWidget(n)
+        self.widget = MultiContactWidget(n)
 
         super(MultiContactField, self).__init__(fields, *args, **kw)
 
     def clean(self, value):
-        print("Clean data=",value)
-        emailFound = False
+#        print("Clean data=",value)
+        email_found = False
         for currData in value:
             if currData[1] == 'email' and currData[2].strip() != '':
                 # at least one email contact -> OK
-                emailFound = True
+                email_found = True
                 break
                 
-        if not emailFound:
+        if not email_found:
             # no email -> ValidationError
             raise forms.ValidationError("At least an email contact expected")
 
         return super(MultiContactField,self).clean(value)
 
     def compress(self, data_list):
+        if self.widget == None:
+            return
 # TODO could we cut the data_list in case it's longer than widget size?
-        if len(data_list) != MultiContactField.widget.getSize():
+        if len(data_list) != self.widget.getSize():
             raise Exception("%d items expected, %d received" %
                 MultiContactField.widget.getSize(),
                 len(data_list))
 
-        contactIdList = [] # array('I')
-        emailFound = False
-        for currContact in data_list:
-            contactIdList.append(str(currContact.pk))
-            emailFound = emailFound or (currContact.flavour == "email")
+        contact_id_list = [] # array('I')
+        email_found = False
+        for curr_contact in data_list:
+            contact_id_list.append(str(curr_contact.pk))
+            email_found = email_found or (curr_contact.flavour == "email")
 
-        if emailFound == False:
+        if email_found == False:
             raise forms.ValidationError("Email contact expected but not found")
 
-        result = string.join(contactIdList,"::")
+        result = string.join(contact_id_list,"::")
         return result
