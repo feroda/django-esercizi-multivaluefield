@@ -48,9 +48,12 @@ class PersonForm(forms.ModelForm):
     place = make_ajax_field(Person,'place','place',help_text="Search for place by name")
     contact_set = MultiContactField(n=3,label=_('Contacts'))
 
-#    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
 #        print("Dentro PersonForm")
-#        return super(PersonForm,self).__init__(args, kwargs)
+        super(PersonForm,self).__init__(*args, **kwargs)
+        self.fields['place'].widget.attrs.update({
+            'style' : 'width:400px'
+        })
 
     class Meta:
         model = Person
