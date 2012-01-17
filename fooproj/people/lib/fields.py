@@ -97,14 +97,16 @@ class PlaceField(forms.MultiValueField):
 
             if curr_id:
                 # get the first object with the same id (should be exactly 1)
-                curr_place = Place.objects.filter(id=curr_id)[0]
+                curr_place = Place.objects.get(pk=curr_id)
                 curr_place.name = name
                 curr_place.zipcode = zipcode
                 curr_place.city = city
                 curr_place.province = state
             else:
-                curr_place = Place(name=name,zipcode=zipcode,
-                    city=city,province=state)
+                curr_place = Place(
+                    name=name,zipcode=zipcode,
+                    city=city,province=state
+                )
 
             curr_place.save()
 
@@ -155,25 +157,20 @@ class ContactField(forms.MultiValueField):
             contact = data_list[2]
             is_preferred = data_list[3]
 
-            if curr_id:
-                curr_cont = Contact.objects.filter(pk=curr_id)[0]
-                curr_cont.flavour = flavour
-                curr_cont.value = contact
-                curr_cont.is_preferred = is_preferred
-            else:
-                curr_cont = Contact(flavour=flavour,value=contact,is_preferred = is_preferred)
+            if (contact):
+                if curr_id:
+                    curr_cont = Contact.objects.get(pk=curr_id)
+                    curr_cont.flavour = flavour
+                    curr_cont.value = contact
+                    curr_cont.is_preferred = is_preferred
+                else:
+                    curr_cont = Contact(
+                        flavour=flavour,value=contact,
+                        is_preferred = is_preferred
+                    )
 
-            # update/save the object if contact is specified; delete otherwise
-            if (curr_cont.value == ''):
-                if (curr_id):
-                    # delete
-                    curr_cont.delete()
-                # else -> object not present in db, skip
-            else:
-                curr_cont.save()
-            return curr_cont
-        else: 
-            return ''
+                return curr_cont
+        return ''
         
     def clean(self, value):
         print ("Contact to clean =", value)
@@ -266,9 +263,9 @@ class MultiContactField(forms.MultiValueField):
         preferred_found = set()
              
         for curr_contact in data_list:
-            if len(curr_contact.value) == 0:
+            if not curr_contact:
                 continue
-            curr_contact.save()
+
             result.append(curr_contact)
             email_found = email_found or (curr_contact.flavour.lower() == 
                 "email")

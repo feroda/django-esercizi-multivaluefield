@@ -161,7 +161,6 @@ class Person(models.Model):
         rv = self.display_name or u'%(name)s %(surname)s' % {'name' : self.name, 'surname': self.surname}
         return rv
 
-#    @transaction.commit_on_success
     def clean(self):
         print("Clean a Person")
         self.name = self.name.strip().lower().capitalize()

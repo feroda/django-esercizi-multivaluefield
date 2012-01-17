@@ -14,6 +14,7 @@ from ajax_select.fields import autoselect_fields_check_can_add
 
 from django.contrib import admin
 from django import forms
+from django.db import transaction
 
 admin.site.register(Contact)
 admin.site.register(Place)
@@ -68,5 +69,15 @@ class PersonAdmin(admin.ModelAdmin):
         form = super(PersonAdmin,self).get_form(request,obj,**kwargs)
         autoselect_fields_check_can_add(form,self.model,request.user)
         return form
+
+    @transaction.commit_on_success
+    def save_model(self, request, obj, form, change):
+        """Save related objects and then save model instance"""
+
+        for contact in form.cleaned_data['contact_set']:
+            contact.save()
+
+        super(PersonAdmin, self).save_model(request, obj, form, change)
+
 
 admin.site.register(Person, PersonAdmin)
