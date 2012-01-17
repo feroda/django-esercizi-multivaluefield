@@ -10,7 +10,7 @@ from people.lib.fields import MultiContactField
 from ajax_select import make_ajax_form
 from ajax_select.admin import AjaxSelectAdmin
 from ajax_select import make_ajax_field
-
+from ajax_select.fields import autoselect_fields_check_can_add
 
 from django.contrib import admin
 from django import forms
@@ -45,7 +45,9 @@ class PersonForm(forms.ModelForm):
     """
 
     #place = PlaceField()
-    place = make_ajax_field(Person,'place','place',help_text="Search for place by name")
+    place = make_ajax_field(Person, model_fieldname='place',
+        channel='place', help_text="Search for place by name"
+    )
     contact_set = MultiContactField(n=3,label=_('Contacts'))
 
     def __init__(self, *args, **kwargs):
@@ -59,6 +61,12 @@ class PersonForm(forms.ModelForm):
         model = Person
 
 class PersonAdmin(admin.ModelAdmin):
+
     form = PersonForm    
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(PersonAdmin,self).get_form(request,obj,**kwargs)
+        autoselect_fields_check_can_add(form,self.model,request.user)
+        return form
 
 admin.site.register(Person, PersonAdmin)
