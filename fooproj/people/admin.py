@@ -57,6 +57,10 @@ class PersonForm(forms.ModelForm):
         self.fields['place'].widget.attrs.update({
             'style' : 'width:400px'
         })
+        if self.instance.pk:
+            c = self.instance.contact_set.count()
+            if c >= 3:
+                self.fields['contact_set'].set_widget(c+1)
 
     class Meta:
         model = Person

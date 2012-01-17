@@ -230,6 +230,9 @@ class MultiContactField(forms.MultiValueField):
 
         super(MultiContactField, self).__init__(fields, *args, **kw)
 
+    def set_widget(self, n):
+        self.widget = MultiContactWidget(n)
+
     def clean(self, value):
         print("Clean data=",value)
         email_found = False
