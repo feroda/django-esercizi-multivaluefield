@@ -158,19 +158,20 @@ class ContactField(forms.MultiValueField):
             contact = data_list[2]
             is_preferred = data_list[3]
 
-            if (contact):
-                if curr_id:
-                    curr_cont = Contact.objects.get(pk=curr_id)
-                    curr_cont.flavour = flavour
-                    curr_cont.value = contact
-                    curr_cont.is_preferred = is_preferred
-                else:
+            curr_cont = ''
+            if curr_id:
+                curr_cont = Contact.objects.get(pk=curr_id)
+                curr_cont.flavour = flavour
+                curr_cont.value = contact
+                curr_cont.is_preferred = is_preferred
+            else:
+                if (contact):
                     curr_cont = Contact(
                         flavour=flavour,value=contact,
                         is_preferred = is_preferred
                     )
 
-                return curr_cont
+            return curr_cont
         return ''
         
     def clean(self, value):
@@ -254,10 +255,10 @@ class MultiContactField(forms.MultiValueField):
         if self.widget == None:
             return
 # TODO could we cut the data_list in case it's longer than widget size?
-        if len(data_list) != self.widget.size:
+        if len(data_list) > self.widget.size:
             raise Exception("%d items expected, %d received" %
-                MultiContactField.widget.size,
-                len(data_list))
+                (self.widget.size, len(data_list))
+            )
 
         result = []
         #contact_id_list = [] # array('I')

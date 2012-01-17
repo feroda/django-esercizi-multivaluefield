@@ -79,7 +79,10 @@ class PersonAdmin(admin.ModelAdmin):
         """Save related objects and then save model instance"""
 
         for contact in form.cleaned_data['contact_set']:
-            contact.save()
+            if contact.value:
+                contact.save()
+            elif contact.pk:
+                form.cleaned_data['contact_set'].remove(contact)
 
         super(PersonAdmin, self).save_model(request, obj, form, change)
 
