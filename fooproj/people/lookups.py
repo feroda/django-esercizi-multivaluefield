@@ -9,7 +9,9 @@ class PlaceLookup(LookupChannel):
     model = Place
 
     def get_query(self,q,request):
-        return Place.objects.filter(name__icontains=q).order_by('city','name')
+        qs = Place.objects.filter(name__icontains=q)
+        qs |= Place.objects.filter(city__icontains=q)
+        return qs.order_by('city','name')
 
     def get_result(self,obj):
         return unicode(obj)
@@ -30,7 +32,7 @@ class PlaceLookup(LookupChannel):
         return format % values 
 
     def can_add(self,user,model):
-        """ customize can_add by allowing anybody to add a Place.
+        """ customize can_add by allowing anybody to add a Group.
             the superclass implementation uses django's permissions system to check.
             only those allowed to add will be offered a [+ add] popup link
             """
