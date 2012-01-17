@@ -2,6 +2,7 @@ from django import forms
 from django.utils.translation import ugettext as _
 from django.utils.safestring import mark_safe
 from django.core.validators import validate_email
+from fooproj.people.lib.validators import validate_phone
 
 from fooproj.people.models import Place
 from fooproj.people.models import Contact
@@ -174,8 +175,10 @@ class ContactField(forms.MultiValueField):
         
     def clean(self, value):
         print ("Contact to clean =", value)
-        if value[1].lower() == 'email' and validate_email(value[2]):
-            raise ValidationError("Specified value ('%s') is not a valid email address" % value[2]);
+        if value[1].lower() == 'email':
+            validate_email(value[2])
+        if value[1].lower() == 'phone':
+            validate_phone(value[2])
         return super(ContactField,self).clean(value)
             
 
