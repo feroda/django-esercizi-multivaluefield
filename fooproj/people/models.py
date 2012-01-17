@@ -2,6 +2,8 @@ from django.db import models
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.auth.models import User
 import const
+from django.db import transaction
+#from django import db
 
 # Create your models here.
 class Contact(models.Model):
@@ -146,8 +148,8 @@ class Person(models.Model):
     display_name = models.CharField(max_length=128, blank=True,verbose_name=_('Display name'))
 
     place = models.ForeignKey(Place,verbose_name=_('place'))
-    contact_set = models.CharField(max_length=128,null=True,blank=True,verbose_name=_('contacts'))
-#    contact_set = models.ManyToManyField('Contact', null=True, blank=True,verbose_name=_('contacts'))
+    #contact_set = models.CharField(max_length=128,null=True,blank=True,verbose_name=_('contacts'))
+    contact_set = models.ManyToManyField('Contact', null=True, blank=True,verbose_name=_('contacts'))
 #    contact_set = models.ForeignKey(Contact, verbose_name=_('contact'))
 
     class Meta:
@@ -159,7 +161,9 @@ class Person(models.Model):
         rv = self.display_name or u'%(name)s %(surname)s' % {'name' : self.name, 'surname': self.surname}
         return rv
 
+#    @transaction.commit_on_success
     def clean(self):
+        print("Clean a Person")
         self.name = self.name.strip().lower().capitalize()
         self.surname = self.surname.strip().lower().capitalize()
         self.display_name = self.display_name.strip()
@@ -168,5 +172,21 @@ class Person(models.Model):
         #else:
         #    self.ssn = self.ssn.strip().upper()
 
+        print("Almost done with this person")
         return super(Person, self).clean()
     
+    @transaction.commit_on_success
+    def save(self):
+#        if commit:
+#            print "Start transaction and save"
+#            db.start_transaction()
+#            try:
+                return super(Person, self).save()
+#                print "Saved succesfully"
+#                db.commit_transaction()
+#            except Exception, e:
+#                print("Exception caught")
+#                db.rollback_transaction()
+#                raise e
+#        else:
+#            super(Person, self).save()

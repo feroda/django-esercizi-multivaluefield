@@ -1,4 +1,6 @@
 from django.utils.translation import ugettext, ugettext_lazy as _
+#from fooproj.settings import STATE_CHOICES
+from django.conf import settings
 
 SUPPLIER_FLAVOUR_LIST = [
     ('COMPANY', _('Company')),
@@ -32,3 +34,5 @@ DAY_CHOICES = [
     ('SATURDAY', _('Saturday')),
     ('SUNDAY', _('Sunday')),
 ]
+
+STATE_CHOICES = settings.STATE_CHOICES

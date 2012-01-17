@@ -7,6 +7,10 @@ from people.lib.fields import PlaceField
 from people.lib.fields import ContactField
 from people.lib.fields import MultiContactField
 
+from ajax_select import make_ajax_form
+from ajax_select.admin import AjaxSelectAdmin
+from ajax_select import make_ajax_field
+
 
 from django.contrib import admin
 from django import forms
@@ -40,19 +44,18 @@ class PersonForm(forms.ModelForm):
     Piu` un campo (multiplo) contatti vuoto). 
     """
 
-    #contact = ContactField()
-    # LF: questo e` qui per prova
-    # c = forms.ModelChoiceField(queryset=Contact.objects.all())
-    place = PlaceField()
+    #place = PlaceField()
+    place = make_ajax_field(Person,'place','place',help_text="Search for place by name")
     contact_set = MultiContactField(n=3,label=_('Contacts'))
-    # LF: questo e` qui per prova
-    # t = forms.SplitDateTimeField(required=False)
+
+#    def __init__(self, *args, **kwargs):
+#        print("Dentro PersonForm")
+#        return super(PersonForm,self).__init__(args, kwargs)
+
     class Meta:
         model = Person
 
 class PersonAdmin(admin.ModelAdmin):
-    form = PersonForm
-
-
+    form = PersonForm    
 
 admin.site.register(Person, PersonAdmin)

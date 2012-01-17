@@ -117,6 +117,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'people',
     'django.contrib.admin',
+    'ajax_select'
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
@@ -145,3 +146,21 @@ LOGGING = {
         },
     }
 }
+
+STATE_CHOICES = [
+    ('AN', 'Ancona'),
+    ('AP', 'Ascoli Piceno'),
+    ('FM', 'Fermo'),
+    ('MC', 'Macerata'),
+    ('PU', 'Pesaro Urbino')
+]
+
+AJAX_LOOKUP_CHANNELS = {
+#    'place' : { 'model' : 'Place', 'search_field':'name' }
+    'place' : ( 'fooproj.people.lookups' , 'PlaceLookup')
+}
+# magically include jqueryUI/js/css
+AJAX_SELECT_BOOTSTRAP = True
+AJAX_SELECT_INLINES = 'inline'
+
+
