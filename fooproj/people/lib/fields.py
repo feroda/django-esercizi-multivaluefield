@@ -11,8 +11,13 @@ from fooproj.people.const import STATE_CHOICES
 from fooproj.people.const import CONTACT_CHOICES
 from django.core.exceptions import ValidationError
 
-# define WIDGETS
+#--------------------------------------------------------------------------------
+
 class PlaceWidget(forms.MultiWidget):
+    """MultiWidget for place definition.
+
+    DEPRECATED. Because we use ajax_select implementation
+    """
     def __init__(self, attrs=None):
         widgets = (
             forms.HiddenInput({ 'value': 0 }),
@@ -39,9 +44,11 @@ class PlaceWidget(forms.MultiWidget):
             _('State:'), rendered_widgets[4],
         ))
 
-
+#--------------------------------------------------------------------------------
 
 class ContactWidget(forms.MultiWidget):
+    """MultiWidget used to manage a contact."""
+
     def __init__(self, attrs={}):
         attrs.update({ 'style' : 'margin-right: 0.5em' })
         widget = (
@@ -67,9 +74,51 @@ class ContactWidget(forms.MultiWidget):
             _('Preferred')+":", rendered_widgets[3]
         ))
 
+#--------------------------------------------------------------------------------
 
-# define FORMS
+class MultiContactWidget(forms.MultiWidget):
+    """MultiWidget used to manage "n" contacts."""
+
+    def __init__(self, n, attrs=None):
+        widgets = []
+        self.num_contacts = n
+        for i in range(n):
+            widgets.append(ContactWidget())
+
+        super(MultiContactWidget, self).__init__(widgets, attrs)
+
+    @property
+    def size(self):
+        return self.num_contacts
+
+    def decompress(self, value):
+        #print("Compress a MultiContactWidget. Value =", value)
+        if value:
+
+            contact_id_set = value
+            contacts = []
+            for curr_id in contact_id_set:
+                if curr_id.isdigit():
+                    #print("Search pk=",curr_id)
+                    contact_found = Contact.objects.filter(pk=curr_id)
+                    #print("Found=",contact_found)
+                    if contact_found != None:
+                        contacts.append(contact_found)
+            
+            #print("All contacts=",contacts)
+            return contacts
+        else:
+            return ''
+
+#--------------------------------------------------------------------------------
+
 class PlaceField(forms.MultiValueField):
+
+    """ Field used to manage a Place model instance.
+
+    DEPRECATED. Now we use ajax_select Field
+    """
+
 #    fields = ['address','city']
     widget = PlaceWidget
 
@@ -83,10 +132,6 @@ class PlaceField(forms.MultiValueField):
         )
         super(PlaceField, self).__init__(fields, *args, **kw)
 
-# a validator is not really needed here    
-#    def validate(self, values):
-#        return True
-
     def compress(self, data_list):
         if data_list != 0:
             curr_id = data_list[0]
@@ -97,14 +142,16 @@ class PlaceField(forms.MultiValueField):
 
             if curr_id:
                 # get the first object with the same id (should be exactly 1)
-                curr_place = Place.objects.filter(id=curr_id)[0]
+                curr_place = Place.objects.get(pk=curr_id)
                 curr_place.name = name
                 curr_place.zipcode = zipcode
                 curr_place.city = city
                 curr_place.province = state
             else:
-                curr_place = Place(name=name,zipcode=zipcode,
-                    city=city,province=state)
+                curr_place = Place(
+                    name=name,zipcode=zipcode,
+                    city=city,province=state
+                )
 
             curr_place.save()
 
@@ -113,7 +160,7 @@ class PlaceField(forms.MultiValueField):
             return ''
 
     def clean(self, data_list):
-        print("Clean PlaceField, DL=",data_list)
+        #print("Clean PlaceField, DL=",data_list)
         nameaddr = data_list[1]
         cap = data_list[2]
         city = data_list[3]
@@ -135,7 +182,11 @@ class PlaceField(forms.MultiValueField):
         
         return super(PlaceField, self).clean(data_list)
 
+#--------------------------------------------------------------------------------
+
 class ContactField(forms.MultiValueField):
+    """MultiValueField used to manage Contact model instances"""
+
     widget = ContactWidget
 
     def __init__(self, *args, **kw):
@@ -148,76 +199,43 @@ class ContactField(forms.MultiValueField):
         super(ContactField, self).__init__(fields, *args, **kw)
     
     def compress(self, data_list):
-        print("Compress a Contact Field, DL=",data_list)
+        #print("Compress a Contact Field, DL=",data_list)
         if data_list:
             curr_id = data_list[0]
             flavour = data_list[1]
             contact = data_list[2]
             is_preferred = data_list[3]
 
+            curr_cont = ''
             if curr_id:
-                curr_cont = Contact.objects.filter(pk=curr_id)[0]
+                curr_cont = Contact.objects.get(pk=curr_id)
                 curr_cont.flavour = flavour
                 curr_cont.value = contact
                 curr_cont.is_preferred = is_preferred
             else:
-                curr_cont = Contact(flavour=flavour,value=contact,is_preferred = is_preferred)
+                if (contact):
+                    curr_cont = Contact(
+                        flavour=flavour,value=contact,
+                        is_preferred = is_preferred
+                    )
 
-            # update/save the object if contact is specified; delete otherwise
-            if (curr_cont.value == ''):
-                if (curr_id):
-                    # delete
-                    curr_cont.delete()
-                # else -> object not present in db, skip
-            else:
-                curr_cont.save()
             return curr_cont
-        else: 
-            return ''
+        return ''
         
     def clean(self, value):
-        print ("Contact to clean =", value)
-        if value[1].lower() == 'email' and validate_email(value[2]):
-            raise ValidationError("Specified value ('%s') is not a valid email address" % value[2]);
+        #print ("Contact to clean =", value)
+        if value[1].lower() == 'email':
+            validate_email(value[2])
+        if value[1].lower() == 'phone':
+            pass
+            #TODO: FS --> validate_phone(value[2])
         return super(ContactField,self).clean(value)
             
-
-class MultiContactWidget(forms.MultiWidget):
-    @property
-    def size(self):
-        return self.num_contacts
-
-    def __init__(self, n, attrs=None):
-#        print("Ricevuto n=%d" % n)
-        widgets = []
-        self.num_contacts = n
-        for i in range(n):
-            widgets.append(ContactWidget())
-
-        super(MultiContactWidget, self).__init__(widgets, attrs)
-#
-    def decompress(self, value):
-        print("Compress a MultiContactWidget. Value =", value)
-        if value:
-            #contact_id_set = value.split("::")[0:self.num_contacts]
-            contact_id_set = value
-            contacts = []
-            for curr_id in contact_id_set:
-                if curr_id.isdigit():
-#                    print("Search pk=",curr_id)
-                    contact_found = Contact.objects.filter(pk=curr_id)
-                    print("Found=",contact_found)
-                    if contact_found != None:
-                        contacts.append(contact_found)
-            
-            print("All contacts=",contacts)
-            return contacts
-        else:
-            return ''
-
-        
+#--------------------------------------------------------------------------------
 
 class MultiContactField(forms.MultiValueField):
+    """MultiField to manage "n" ContactField."""
+
     widget = None
 
     def __init__(self, n, *args, **kw):
@@ -230,8 +248,11 @@ class MultiContactField(forms.MultiValueField):
 
         super(MultiContactField, self).__init__(fields, *args, **kw)
 
+    def set_widget_size(self, n):
+        self.widget = MultiContactWidget(n)
+
     def clean(self, value):
-        print("Clean data=",value)
+        #print("Clean data=",value)
         email_found = False
         for currData in value:
             if currData[1] != None and currData[1].lower() == 'email' and currData[2].strip() != '':
@@ -244,50 +265,67 @@ class MultiContactField(forms.MultiValueField):
             raise forms.ValidationError("At least an email contact expected")
         
         return super(MultiContactField, self).clean(value)
-#        return value
-#
+
     def compress(self, data_list):
-        print("Compress a MultiContactField, Data_List=",data_list)
+        #print("Compress a MultiContactField, Data_List=",data_list)
         if self.widget == None:
             return
-# TODO could we cut the data_list in case it's longer than widget size?
-        if len(data_list) != self.widget.size:
+
+        # Check if data_list is longer than widget size than possible attack detected!
+        if len(data_list) > self.widget.size:
             raise Exception("%d items expected, %d received" %
-                MultiContactField.widget.size,
-                len(data_list))
+                (self.widget.size, len(data_list))
+            )
 
         result = []
-        #contact_id_list = [] # array('I')
         email_found = False
         
         # check there is one preferred contact per flavour
         # NB non-specified flavours are ignored
-        preferred_missing = set()
-        preferred_found = set()
-             
+        pref_per_flav = {} # a list of contacts per flavour
+
+        for curr_flav in CONTACT_CHOICES:
+            pref_per_flav[curr_flav[0]] = set()
+        
         for curr_contact in data_list:
-            if len(curr_contact.value) == 0:
+            if not curr_contact or curr_contact.value.strip() == "":
                 continue
-            curr_contact.save()
+
             result.append(curr_contact)
             email_found = email_found or (curr_contact.flavour.lower() == 
                 "email")
-            
-            if curr_contact.is_preferred:
-                preferred_found.add(curr_contact.flavour)
-                if (curr_contact.flavour in preferred_missing):
-                    preferred_missing.remove(curr_contact.flavour)
-            elif not(curr_contact.flavour in preferred_found):
-                # ! curr_contact.is_preferred & curr_contact.flavour not in preferred_found
-                preferred_missing.add(curr_contact.flavour)
-                
+ 
+            pref_per_flav[curr_contact.flavour].add(curr_contact)
+
+
+        print("Tutti", pref_per_flav)
+        for flav,cont_set in pref_per_flav.items():
+            print("Contset per %s" % flav, cont_set)
+            if len(cont_set) == 1: # 1 contat for this flavour -> it's preferred
+                print("Set the default preferred for %s" % flav)
+                cont = cont_set.pop()
+                cont.is_preferred = True
+            elif len(cont_set) > 0:
+                found_one_pref = False
+                for cont in cont_set:
+                    if cont.is_preferred and (not found_one_pref):
+                        print("TROVATO %s!" % flav)
+                        found_one_pref = True
+                        print("Found after = ", found_one_pref)
+                    elif cont.is_preferred:
+                        raise ValidationError("More than one preferred contact of type %s. Expected only one." % flav)
+  
+                print("Found after 1 = ", found_one_pref)
+   
+                if not found_one_pref:
+                    # no preferred among the contacts -> error
+                    raise ValidationError("At least one preferred contact of type %s expected." % flav)
 
         if email_found == False:
             raise forms.ValidationError("Email contact expected but not found")
 
-        if len(preferred_missing) > 0:
-            raise forms.ValidationError("One preferred contact per flavour expacted. Missing preferred for: " + ','.join(preferred_missing) );
-        
-        #result = string.join(contact_id_list,"::")
-        
+#        if len(preferred_missing) > 0:
+#            raise forms.ValidationError("One preferred contact per flavour expacted. Missing preferred for: " + ','.join(preferred_missing) );
+#        
         return result
+
