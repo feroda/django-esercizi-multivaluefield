@@ -224,20 +224,12 @@ class ContactField(forms.MultiValueField):
         return ''
         
     def clean(self, value):
-<<<<<<< HEAD
         #print ("Contact to clean =", value)
         if value[1].lower() == 'email':
             validate_email(value[2])
         if value[1].lower() == 'phone':
             pass
             #TODO: FS --> validate_phone(value[2])
-=======
-        print ("Contact to clean =", value)
-        if value[1].lower() == 'email':
-            validate_email(value[2])
-        if value[1].lower() == 'phone':
-            validate_phone(value[2])
->>>>>>> 4bb1118216d57361bd3c1220e940d5212064b7b7
         return super(ContactField,self).clean(value)
             
 #--------------------------------------------------------------------------------
@@ -257,11 +249,7 @@ class MultiContactField(forms.MultiValueField):
 
         super(MultiContactField, self).__init__(fields, *args, **kw)
 
-<<<<<<< HEAD
-    def set_widget_size(self, n):
-=======
     def set_widget(self, n):
->>>>>>> 4bb1118216d57361bd3c1220e940d5212064b7b7
         self.widget = MultiContactWidget(n)
 
     def clean(self, value):
@@ -283,12 +271,8 @@ class MultiContactField(forms.MultiValueField):
         #print("Compress a MultiContactField, Data_List=",data_list)
         if self.widget == None:
             return
-<<<<<<< HEAD
 
         # Check if data_list is longer than widget size than possible attack detected!
-=======
-# TODO could we cut the data_list in case it's longer than widget size?
->>>>>>> 4bb1118216d57361bd3c1220e940d5212064b7b7
         if len(data_list) > self.widget.size:
             raise Exception("%d items expected, %d received" %
                 (self.widget.size, len(data_list))
@@ -305,11 +289,7 @@ class MultiContactField(forms.MultiValueField):
             pref_per_flav[curr_flav[0]] = set()
         
         for curr_contact in data_list:
-<<<<<<< HEAD
             if not curr_contact or curr_contact.value.strip() == "":
-=======
-            if not curr_contact:
->>>>>>> 4bb1118216d57361bd3c1220e940d5212064b7b7
                 continue
 
             result.append(curr_contact)
