@@ -157,7 +157,7 @@ STATE_CHOICES = [
 
 AJAX_LOOKUP_CHANNELS = {
 #    'place' : { 'model' : 'Place', 'search_field':'name' }
-    'place' : ( 'fooproj.people.lookups' , 'PlaceLookup')
+    'placechannel' : ( 'fooproj.people.lookups' , 'PlaceLookup')
 }
 # magically include jqueryUI/js/css
 AJAX_SELECT_BOOTSTRAP = True
